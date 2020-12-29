@@ -1,43 +1,15 @@
-# ifsm
-
-**ifsm** 是一个简单的FSM（有限状态机）实现. 
-
-## 介绍
-
-#### 概念
-
-+ state: 实例的状态
-+ event: 接收到的事件
-+ action: 状态变换前后执行的操作
-+ condition: 事物接收到同一事件，但是基于当前的状态及其他变量取值可以进不不同的transitions.
-+ transitions: 事物接收到事件后进行状态的变更。
-
-状态机中一次状态的转换（transitions）为：
-1.接收event;
-2.判断condition;
-3.执行pre-action;变换状态;执行next-action;
+# -*- coding: utf-8 -*-
 
 
-#### 特性
-
-+ 
-
-## 安装
-
-ifsm is available on PyPI:
-
-```console
-$ python -m pip install ifsm 
-```
+from ifsm import BaseContentFSM
 
 
-## 示例
+STATE_UN_AUDIT = 0  # 未审核
+STATE_PASS = 1     # 审核通过
+STATE_AUDIT = 2    # 审核中
+STATE_REJECT = 99  # 审核拒绝
 
-以评论审核场景介绍ifsm使用
 
-定义评论实例，一个评论实例对应一个状态机实例。
-
-```python
 def Singleton(cls):
     _instance = {}
     def _singleton(*args, **kargs):
@@ -62,16 +34,19 @@ class Comment(object):
 
     def set_state(self, state):
         self._state = state
-```
-
-定义状态机配置文件。
 
 
-```python
-STATE_UN_AUDIT = 0  # 未审核
-STATE_PASS = 1     # 审核通过
-STATE_AUDIT = 2    # 审核中
-STATE_REJECT = 99  # 审核拒绝
+class CommentFSM(BaseContentFSM):
+    def __init__(self, content_id):
+        def get_audit_state(content_id):
+            contentObj = Comment(content_id)
+            return contentObj.get_state()
+
+        def set_audit_state(content_id, state):
+            contentObj = Comment(content_id)
+            contentObj.set_state(state)
+
+        super(CommentFSM, self).__init__(content_id, FSM_CONFIG, get_audit_state, set_audit_state)
 
 FSM_CONFIG = {
     "events": [
@@ -126,31 +101,15 @@ FSM_CONFIG = {
     ]
 }
 
-```
 
-重载状态机，传入获取状态和设置状态的方法，和状态变更配置文件，通常状态存在db中。
+def audit_pass_condition(comment_id):
+    """
+    根据当前数据状态及其他变量确定所属的condition
+    :param comment_id:
+    :return:
+    """
+    return "to_audit_2nd"
 
-
-```python
-from ifsm import BaseContentFSM
-
-class CommentFSM(BaseContentFSM):
-    def __init__(self, content_id):
-        def get_audit_state(content_id):
-            contentObj = Comment(content_id)
-            return contentObj.get_state()
-
-        def set_audit_state(content_id, state):
-            contentObj = Comment(content_id)
-            contentObj.set_state(state)
-
-        super(CommentFSM, self).__init__(content_id, FSM_CONFIG, get_audit_state, set_audit_state)
-
-```
-
-编写condition函数和action函数
-
-```python
 
 def audit_pass_action(comment_id, *args, **kwargs):
     """
@@ -171,12 +130,31 @@ def audit_reject_action(comment_id, *args, **kwargs):
     :return:
     """
     print("评论%s 审核拒绝" % comment_id)
-```
 
 
-业务场景中，有事件触发的时候触发状态机变更。
+def audit_pass_pre_action(comment_id, *args, **kwargs):
+    """
+    修改状态的前置操作
+    :param comment_id:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    print("审核队列已移出")
 
-```python
+
+def audit_pass_to2nd_action(comment_id, *args, **kwargs):
+    """
+    二次审核action
+    :param comment_id:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    print("评论%s 进入复审！" % comment_id)
+
+
+
 comment = Comment("12345")
 comment.set_state(STATE_UN_AUDIT)
 fsm = CommentFSM(comment.get_id())
@@ -185,4 +163,3 @@ fsm.deal("audit_pass")
 print("评论状态:" + str(comment.get_state()))
 fsm.deal("audit_pass")
 print("评论状态:" + str(comment.get_state()))
-```
