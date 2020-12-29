@@ -12,7 +12,9 @@
 + condition: 事物接收到同一事件，但是基于当前的状态及其他变量取值可以进不不同的transitions.
 + transitions: 事物接收到事件后进行状态的变更。
 
-[![](https://raw.githubusercontent.com/diaohaha/ifsm/master/ext/ifsm.jpg)]
+---
+
+![](https://raw.githubusercontent.com/diaohaha/ifsm/master/ext/ifsm.jpg)
 
 
 状态机中一次状态的转换（transitions）为：
@@ -24,10 +26,8 @@
 
 #### 特性
 
-+ 状态保护: 在一些复杂的场景中，内容接收到非预期的事件，也可能接收到重复事件，状态机通过配置from状态集来判断是否为正常
-的流转否则抛出ContentFSMTransitionError。
-+ 支持Celery: 事物的状态变更之后，可能需要一些其他的操作，但是又不想占用本次请求的时间，可以将action_type配置成celery来
-进行任务的异步执行，但是这将无法保证事务一致性。
++ 状态保护: 在一些复杂的场景中，内容接收到非预期的事件，也可能接收到重复事件，状态机通过配置from状态集来判断是否为正常的流转否则抛出ContentFSMTransitionError。
++ 支持Celery: 事物的状态变更之后，可能需要一些其他的操作，但是又不想占用本次请求的时间，可以将action_type配置成celery来进行任务的异步执行，但是这将无法保证事务一致性。
 
 ## 安装
 
